@@ -3,7 +3,10 @@ const pageNotFound = require('./middlewares/page-not-found');
 const findError = require('./middlewares/find-error');
 const moviesRouter = require('./routers/moviesRouter')
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
+
+
+//console.log(process.env)
 
 
 app.use(express.static('public'))
