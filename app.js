@@ -2,12 +2,14 @@ const express = require('express');
 const pageNotFound = require('./middlewares/page-not-found');
 const findError = require('./middlewares/find-error');
 const moviesRouter = require('./routers/moviesRouter')
+const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 3000;
 
 
 //console.log(process.env)
 
+app.use(cors());
 
 app.use(express.static('public'))
 
