@@ -59,4 +59,24 @@ function show(req, res) {
 }
 
 
-module.exports = { index, show }
+//ROTTA STORE
+
+function store(req, res) {
+
+    const id = req.params.id
+
+    const { text, vote, name } = req.body
+    //console.log(id, text, vote, name)
+
+
+    const sql = 'INSERT INTO reviews (text, name, vote, movie_id) VALUES (?, ?, ?, ?)'
+
+    connection.query(sql, [text, name, vote, id], (err, results) => {
+        if (err) return res.status(500).json({ message: 'Database query failed' })
+        //console.log(results)
+        res.status(201).json({ message: 'Review added', id: results.insertId })
+    })
+}
+
+
+module.exports = { index, show, store }
