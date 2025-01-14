@@ -69,12 +69,17 @@ function store(req, res) {
     //console.log(id, text, vote, name)
 
 
+    if (!name || name?.length > 255 || typeof name !== 'string') {
+        return res.status(400).json({ message: 'I dati non sono validi' })
+    }
+
+
     const sql = 'INSERT INTO reviews (text, name, vote, movie_id) VALUES (?, ?, ?, ?)'
 
     connection.query(sql, [text, name, vote, id], (err, results) => {
-        if (err) return res.status(500).json({ message: 'Database query failed' })
+        if (err) return res.status(500).json({ message: 'Query del database fallita' })
         //console.log(results)
-        res.status(201).json({ message: 'Review added', id: results.insertId })
+        res.status(201).json({ message: 'Recensione aggiunta', id: results.insertId })
     })
 }
 
