@@ -24,38 +24,64 @@ function index(req, res) {
 //ROTTA SHOW:
 
 function show(req, res) {
-
     const id = parseInt(req.params.id);
+    console.log(`Fetching details for movie ID: ${id}`);
 
-    const sql = `SELECT movies.*, AVG(vote) AS avg_vote 
-		FROM movies
-		JOIN reviews
-		ON movies.id = reviews.movie_id 
-		WHERE movies.id = ?
-		GROUP BY movies.id
-		`
+    const sqlCheckMovie = `SELECT * FROM movies WHERE id = ?`;
+    console.log(`Executing SQL: ${sqlCheckMovie} with ID: ${id}`);
 
-    connection.query(sql, [id], (err, result) => {
-        if (err) return res.status(500).json({ message: err.message });
+    connection.query(sqlCheckMovie, [id], (err, movieResult) => {
+        if (err) {
+            console.error(`Database query error: ${err.message}`);
+            return res.status(500).json({ message: err.message });
+        }
 
-        if (result.length === 0) return res.status(404).json({
-            error: 'not found',
-            message: 'movie not found'
+        if (movieResult.length === 0) {
+            console.log(`Movie with ID ${id} not found`);
+            return res.status(404).json({
+                error: 'not found',
+                message: 'movie not found'
+            });
+        }
+
+        const sql = `SELECT movies.*, AVG(vote) AS avg_vote 
+            FROM movies
+            LEFT JOIN reviews
+            ON movies.id = reviews.movie_id 
+            WHERE movies.id = ?
+            GROUP BY movies.id`;
+
+        console.log(`Executing SQL: ${sql} with ID: ${id}`);
+
+        connection.query(sql, [id], (err, result) => {
+            if (err) {
+                console.error(`Database query error: ${err.message}`);
+                return res.status(500).json({ message: err.message });
+            }
+
+            console.log(`Query result: ${JSON.stringify(result)}`);
+
+            const movie = result[0];
+            movie.image = `http://localhost:3000/img/${movie.image}`;
+
+            const sqlReviews = `SELECT * FROM reviews WHERE movie_id = ?`;
+
+
+            console.log(`Executing SQL for reviews: ${sqlReviews} with ID: ${id}`);
+            connection.query(sqlReviews, [id], (err, results) => {
+                if (err) {
+                    console.error(`Database query error: ${err.message}`);
+                    return res.status(500).json({ message: err.message });
+                }
+
+                console.log(`Reviews query result: ${JSON.stringify(results)}`);
+
+                movie.reviews = results;
+
+                res.json(movie);
+            });
         });
-
-        const movie = result[0];
-        movie.image = `http://localhost:3000/img/${movie.image}`
-
-        const sql = `SELECT * FROM reviews WHERE movie_id = ?`
-
-        connection.query(sql, [id], (err, results) => {
-            if (err) return res.status(500).json({ message: err.message })
-
-            movie.reviews = results
-
-            res.json(movie)
-        })
-    })
+    });
 }
 
 
@@ -125,7 +151,8 @@ function storeFilms(req, res) {
                 console.error(err);
                 return res.status(500).json({ message: 'Errore durante l’inserimento nel database' });
             }
-            res.status(201).json({ message: 'Film aggiunto con successo' });
+            console.log(`New movie inserted with ID: ${results.insertId}`); // Add logging
+            res.status(201).json({ message: 'Film aggiunto con successo', id: results.insertId });
         });
     });
 }

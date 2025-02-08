@@ -12,6 +12,6 @@ router.get('/:id', moviesController.show);
 router.post('/:id/reviews', moviesController.storeReviews)
 
 //ROTTA STORE FILMS
-router.post('/', moviesController.storeFilms)
+router.post('/:id/movies', moviesController.storeFilms)
 
 module.exports = router
