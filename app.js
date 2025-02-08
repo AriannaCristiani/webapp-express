@@ -3,6 +3,7 @@ const pageNotFound = require('./middlewares/page-not-found');
 const findError = require('./middlewares/find-error');
 const moviesRouter = require('./routers/moviesRouter')
 const cors = require('cors');
+const fileUpload = require('express-fileupload');
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -10,6 +11,8 @@ const port = process.env.PORT || 3000;
 //console.log(process.env)
 
 app.use(cors());
+
+app.use(fileUpload());
 
 app.use(express.json())
 

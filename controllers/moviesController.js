@@ -85,22 +85,49 @@ function storeReviews(req, res) {
 
 
 
-//ROTTA STORE FILMS
+// ROTTA STORE FILMS
+
+const path = require('path');
+const fs = require('fs');
 
 function storeFilms(req, res) {
+    console.log(" Ricevuto body:", req.body);
+    console.log(" File ricevuti:", req.files);
 
+    if (!req.files || !req.files.image) {
+        return res.status(400).json({ message: 'Nessun file caricato' });
+    }
 
-    const { title, director, genre, release_year, abstract, image } = req.body
-    console.log(title, director, genre, release_year, abstract, image)
+    const { title, director, genre, release_year, abstract } = req.body;
 
+    if (!title || !director || !genre || !release_year || !abstract) {
+        return res.status(400).json({ message: 'Tutti i campi devono essere compilati' });
+    }
 
-    const sql = 'INSERT INTO movies (title, director, genre, release_year, abstract, image) VALUES (?, ?, ?, ?, ?, ?)'
+    const imageFile = req.files.image;
+    const formattedImageName = Date.now() + '-' + imageFile.name.replace(/ /g, "-");
 
-    connection.query(sql, [title, director, genre, release_year, abstract, image], (err, results) => {
-        if (err) return res.status(500).json({ message: 'Query del database fallita' })
-        console.log(results)
-        res.status(201).json({ message: 'Film aggiunto con successo' })
-    })
+    const uploadsPath = path.join(__dirname, '..', 'public', 'img');
+    if (!fs.existsSync(uploadsPath)) {
+        fs.mkdirSync(uploadsPath, { recursive: true });
+    }
+
+    const imgFinalPath = path.join(uploadsPath, formattedImageName);
+
+    imageFile.mv(imgFinalPath, (err) => {
+        if (err) {
+            return res.status(500).json({ error: `Errore durante il salvataggio dell'immagine` });
+        }
+
+        const sql = 'INSERT INTO movies (title, director, genre, release_year, abstract, image) VALUES (?, ?, ?, ?, ?, ?)';
+        connection.query(sql, [title, director, genre, Number(release_year), abstract, formattedImageName], (err, results) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ message: 'Errore durante l’inserimento nel database' });
+            }
+            res.status(201).json({ message: 'Film aggiunto con successo' });
+        });
+    });
 }
 
 
