@@ -59,9 +59,9 @@ function show(req, res) {
 }
 
 
-//ROTTA STORE
+//ROTTA STORE REVIEWS
 
-function store(req, res) {
+function storeReviews(req, res) {
 
     const id = req.params.id
 
@@ -84,4 +84,24 @@ function store(req, res) {
 }
 
 
-module.exports = { index, show, store }
+
+//ROTTA STORE FILMS
+
+function storeFilms(req, res) {
+
+
+    const { title, director, genre, release_year, abstract, image } = req.body
+    console.log(title, director, genre, release_year, abstract, image)
+
+
+    const sql = 'INSERT INTO movies (title, director, genre, release_year, abstract, image) VALUES (?, ?, ?, ?, ?, ?)'
+
+    connection.query(sql, [title, director, genre, release_year, abstract, image], (err, results) => {
+        if (err) return res.status(500).json({ message: 'Query del database fallita' })
+        console.log(results)
+        res.status(201).json({ message: 'Film aggiunto con successo' })
+    })
+}
+
+
+module.exports = { index, show, storeReviews, storeFilms }
