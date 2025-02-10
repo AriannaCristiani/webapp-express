@@ -1,25 +1,33 @@
 const connection = require('../data/db.js');
 
 
-
-//ROTTA INDEX:
+//ROTTA INDEX
 
 function index(req, res) {
-
-    const sql = `SELECT * FROM movies`;
-
-    connection.query(sql, (err, movies) => {
-        if (err) return res.status(500).json({ message: err.message })
-
-        movies.forEach((movie) => {
-            movie.image = `http://localhost:3000/img/${movie.image}`
-        })
-
-        res.json(movies)
-    })
-};
+    let search = req.query.search ? req.query.search.trim() : "";
 
 
+    if (search === "") {
+        search = "%";
+    } else {
+        search = `%${search}%`;
+    }
+
+    const sql = `SELECT * FROM movies WHERE title LIKE ?`;
+
+    connection.query(sql, [search], (err, movies) => {
+        if (err) {
+            console.error("Errore nella query:", err);
+            return res.status(500).json({ message: "Errore nel recupero dei film" });
+        }
+
+        movies.forEach(movie => {
+            movie.image = `http://localhost:3000/img/${movie.image}`;
+        });
+
+        res.json(movies);
+    });
+}
 
 //ROTTA SHOW:
 
